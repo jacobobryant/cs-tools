@@ -6,31 +6,41 @@ import sys
 KEY_LENGTH = len("Description:")  # That's the longest key.
 
 class Header:
-    def __init__(self, func, name, width, position):
+    def __init__(self, func, position):
         self.func = func
-        self.name = name
-        self.width = width
         self.position = position
         self.calls = []
 
-        TAB_WIDTH = 4
-        numTabs = func['indent'].count('\t')
-        width -= numTabs * (TAB_WIDTH - 1)
-        self._box_top = "{0:-<{1}}\n".format(func['indent'] + '//', width)
+    def set_calls(self, text, names):
+        block = self._get_block(text)
+        pattern = re.compile(r'(\w+)\(')
+        matches = set(pattern.findall(block))
+        self.calls = [name for name in matches if name in names]
 
-    def add_calls(self, text, names):
-        pass
+    def _get_block(self, text):
+        start = text.find("{", self.position)
+        level = 0
+        for i in range(start, len(text)):
+            if text[i] == "{":
+                level += 1
+            elif text[i] == "}":
+                level -= 1
+            if level == 0:
+                end = i
+                break
+        return text[start:end]
 
     def text(self):
         h = ""
         h += self._box_top()
         h += self._signature()
         h += self._hline("Description")
-        h += self._hline("Programmers", name)
+        h += self._hline("Programmers", args.name)
         h += self._hline("Version", "1.0")
         h += self._hline("Input")
         h += self._hline("Output")
-        h += self._hline("Calls")
+        if self.calls:
+            h += self._hline("Calls", ", ".join(self.calls))
         h += self._hline("Called by")
         h += self._params()
         if self.func['type'] != 'void':
@@ -46,20 +56,20 @@ class Header:
     def _box_top(self):
         TAB_WIDTH = 4
         numTabs = self.func['indent'].count('\t')
-        width = self.width - numTabs * (TAB_WIDTH - 1)
+        width = args.width - numTabs * (TAB_WIDTH - 1)
         return "{0:-<{1}}\n".format(self.func['indent'] + '//', width)
 
     def _params(self):
-        args = re.sub(r'\s+', ' ', func['args'])
+        args = re.sub(r'\s+', ' ', self.func['args'])
         args = [arg.strip() for arg in args.split(',')]
         width = max([len(arg) for arg in args]) + len(":")
         argString = lambda arg: "{0: <{1}}".format(arg + ":", width)
-        line = lambda arg: func['indent'] + "// " + ' ' * (KEY_LENGTH + 1) + \
+        line = lambda arg: self.func['indent'] + "// " + ' ' * (KEY_LENGTH + 1) + \
                 argString(arg) + "\n"
 
         ret = ""
         if args[0]:
-            ret += hline(func, "Parameters", argString(args[0]))
+            ret += self._hline("Parameters", argString(args[0]))
             for arg in args[1:]:
                 ret += line(arg)
         return ret
@@ -90,9 +100,7 @@ def build_headers(text):
         if not func['type'] and (not func['class'] or
                 func['class'] != func['name']):
             continue
-        headers.append(Header(func, args.name, args.width, match.start()))
-#        headers.append({'position': match.start(), 'text':
-#            build_header(match.groupdict(), args.name, args.width)})
+        headers.append(Header(func, match.start()))
     return headers
 
 def insert_headers(text, headers):
@@ -128,10 +136,8 @@ for filename in args.files:
     infile.close()
     headers = build_headers(text)
     names = set([h.func['name'] for h in headers])
-    '''
     for h in headers:
-        h.add_calls(text, names)
-    '''
+        h.set_calls(text, names)
     output = insert_headers(text, headers)
     try:
         outfile = open(filename, 'w') if args.in_place else sys.stdout
