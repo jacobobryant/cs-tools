@@ -10,12 +10,19 @@ class Header:
         self.func = func
         self.position = position
         self.calls = []
+        self.called_by = []
 
     def set_calls(self, text, names):
         block = self._get_block(text)
-        pattern = re.compile(r'(\w+)\(')
+        pattern = re.compile(r'[^:](\w+)\(')
         matches = set(pattern.findall(block))
         self.calls = [name for name in matches if name in names]
+
+    def set_called_by(self, headers):
+        for called in self.calls:
+            for header in headers:
+                if header.func['name'] == called:
+                    header.called_by.append(self.func['name'])
 
     def _get_block(self, text):
         start = text.find("{", self.position)
@@ -41,7 +48,8 @@ class Header:
         h += self._hline("Output")
         if self.calls:
             h += self._hline("Calls", ", ".join(self.calls))
-        h += self._hline("Called by")
+        if self.called_by:
+            h += self._hline("Called by", ", ".join(self.called_by))
         h += self._params()
         if self.func['type'] != 'void':
             h += self._hline("Returns")
@@ -138,6 +146,7 @@ for filename in args.files:
     names = set([h.func['name'] for h in headers])
     for h in headers:
         h.set_calls(text, names)
+        h.set_called_by(headers)
     output = insert_headers(text, headers)
     try:
         outfile = open(filename, 'w') if args.in_place else sys.stdout
