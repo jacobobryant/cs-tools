@@ -47,10 +47,9 @@ class BaseHeader:
 
     @staticmethod
     def merge(text, headers):
-        # This assumes that the headers are already sorted by position.
         output = ""
         position = 0
-        for header in headers:
+        for header in sorted(headers, key=lambda h: h.position):
             output += text[position:header.position]
             output += str(header)
             position = header.position
@@ -92,7 +91,7 @@ class FunctionHeader(BaseHeader):
         return headers
 
     def set_calls(self, text, names):
-        block = self.get_block(text)
+        block = get_block(text, self.position)
         pattern = re.compile(r'[^:](\w+)\(')
         matches = set(pattern.findall(block))
         self.calls = [name for name in matches if name in names]
@@ -102,19 +101,6 @@ class FunctionHeader(BaseHeader):
             for header in headers:
                 if header.name == called:
                     header.called_by.append(self.name)
-
-    def get_block(self, text):
-        start = text.find("{", self.position)
-        level = 0
-        for i in range(start, len(text)):
-            if text[i] == "{":
-                level += 1
-            elif text[i] == "}":
-                level -= 1
-            if level == 0:
-                end = i
-                break
-        return text[start:end]
 
     def __str__(self):
         self.contents = self.title() + \
@@ -154,26 +140,48 @@ class CPPFileHeader(BaseHeader):
 
 class HFileHeader(BaseHeader):
     def __init__(self, filename, text):
-        classes = re.findall(r'\s*class\s+(\w+)', text)
+        classes = re.findall(r'^\s*class\s+(\w+)', text, re.MULTILINE)
         self.contents = [["File", filename],
                          ["Classes", classes]]
 
-parser = argparse.ArgumentParser(
-        description="Add function headers to c++ source files. Writes"
-        + " to stdout unless the -i option is included.")
-parser.add_argument("files", nargs="+", help="the .cpp files")
-parser.add_argument("-n", "--name", default='Jacob O\'Bryant',
-        help="Your name")
-parser.add_argument("-w", "--width", type=int, default=74,
-        help="The maximum line width")
-parser.add_argument("-i", "--in-place", action="store_true",
-        help="modify file in place")
-parser.add_argument("-e", "--environment", default="Intel Pentium PC, " +
-        "Arch Linux, gcc 4.7", help="The maximum line width")
-parser.add_argument("-t", "--tab-width", type=int, default=4,
-        help="The width of tabs")
-parser.add_argument("-v", "--version", default="1.0",
-        help="The starting version")
+def get_block(text, start):
+    start = text.find("{", start)
+    level = 0
+    for i in range(start, len(text)):
+        if text[i] == "{":
+            level += 1
+        elif text[i] == "}":
+            level -= 1
+        if level == 0:
+            end = i
+            break
+    return text[start:end]
+
+def insert_headers(filename, text):
+    headers = []
+    ext = filename.split(".")[-1]
+    if ext == "h":
+        headers.append(HFileHeader(filename, text))
+    else:
+        fheaders = FunctionHeader.parse(text)
+        names = set([h.name for h in fheaders])
+        for h in fheaders:
+            h.set_calls(text, names)
+            h.set_called_by(fheaders)
+        headers.append(CPPFileHeader(filename, fheaders))
+        headers += fheaders
+    return BaseHeader.merge(text, headers)
+
+parser = argparse.ArgumentParser(description="Add function headers to " \
+        + "c++ source files. Writes to stdout unless the -i option is " \
+        + "included.")
+parser.add_argument("files", nargs="+", help="the input files")
+parser.add_argument("-n", "--name", default='Jacob O\'Bryant', help="Your name")
+parser.add_argument("-w", "--width", type=int, default=74, help="The maximum line width")
+parser.add_argument("-i", "--in-place", action="store_true", help="modify file in place")
+parser.add_argument("-e", "--environment", default="Intel Pentium PC, Arch Linux, gcc 4.7", help="The maximum line width")
+parser.add_argument("-t", "--tab-width", type=int, default=4, help="The width of tabs")
+parser.add_argument("-v", "--version", default="1.0", help="The starting version")
 args = parser.parse_args()
 
 for filename in args.files:
@@ -183,15 +191,8 @@ for filename in args.files:
         sys.stderr.write("Couldn't open " + filename +
                 " for reading.\n")
         continue
-    text = infile.read()
+    output = insert_headers(filename, infile.read())
     infile.close()
-    headers = FunctionHeader.parse(text)
-    fileHeader = CPPFileHeader(filename, headers)
-    names = set([h.name for h in headers])
-    for h in headers:
-        h.set_calls(text, names)
-        h.set_called_by(headers)
-    output = BaseHeader.merge(text, [fileHeader] + headers)
     try:
         outfile = open(filename, 'w') if args.in_place else sys.stdout
     except IOError:
