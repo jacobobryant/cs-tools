@@ -67,14 +67,15 @@ class FunctionHeader(BaseHeader):
         self.calls = []
         self.called_by = []
         self.signature = "{0}({1})".format(self.name, self.args)
-        self.definition = self.type + ' ' + self.signature
+        self.definition = self.type + ' ' if self.type else ''
+        self.definition += self.signature
 
     @classmethod
     def parse(cls, text):
         headers = []
         pattern = re.compile(r"""
                 ^(?P<indent>\s*)
-                (?P<type>((const\ )?[\w&*]+\ )?)
+                ((?P<type>(const\ )?[\w&*]+)\ )?
                 ((?P<class>\w+)::)?
                 (?P<name>(\w+|operator\S\S?))
                 \(
@@ -144,6 +145,38 @@ class HFileHeader(BaseHeader):
         self.contents = [["File", filename],
                          ["Classes", classes]]
 
+class ClassHeader(BaseHeader):
+    def __init__(self, class_, text, position):
+        self.indent = class_['indent']
+        self.name = class_['name']
+        self.position = position
+        block = get_block(text, position)
+        props = re.findall(r'^\s*((?:[\w&*]+\s+)+\w+);', block,
+                re.MULTILINE)
+        self.properties = [' '.join(p.split()) for p in props]
+
+    @classmethod
+    def parse(cls, text):
+        headers = []
+        pattern = re.compile(r'^(?P<indent>\s*)class\s+(?P<name>\w+)',
+                re.MULTILINE)
+        for match in pattern.finditer(text):
+            class_ = match.groupdict()
+            headers.append(cls(class_, text, match.start()))
+        return headers
+
+    def __str__(self):
+        self.contents = [["Class", self.name],
+                         ["Description", ""],
+                         ["Programmers", args.name],
+                         ["Version", args.version],
+                         ["Environment", args.environment]]
+        if self.properties:
+            self.contents.append(["Properties",
+                self.equalize(self.properties)])
+        self.contents.append(["History", ""])
+        return super().__str__()
+
 def get_block(text, start):
     start = text.find("{", start)
     level = 0
@@ -162,6 +195,7 @@ def insert_headers(filename, text):
     ext = filename.split(".")[-1]
     if ext == "h":
         headers.append(HFileHeader(filename, text))
+        headers += ClassHeader.parse(text)
     else:
         fheaders = FunctionHeader.parse(text)
         names = set([h.name for h in fheaders])
