@@ -1,0 +1,25 @@
+#!/bin/bash
+
+if [ $# -eq 0 ]; then
+    echo Not enough arguments.
+    exit 1
+fi
+
+if [ -x "$1" ]; then
+    tests=/tmp/mkplan.sh-$RANDOM.txt
+    echo -n > $tests
+    while [ $# -gt 0 ]; do
+        [ -x $1 ] || (echo $1 isn\'t executable; shift; continue)
+        $1 >> $tests
+        shift
+    done
+    parse_test.py $tests > plan.txt
+    rm $tests
+elif [ $1 = "plan.txt" ]; then
+    html=/tmp/mkplan.sh-$RANDOM.html
+    format_plan.py "$1" $html
+    chromium $html
+else
+    echo invalid argument: $1
+    exit 1
+fi

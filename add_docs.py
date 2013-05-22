@@ -225,7 +225,7 @@ for filename in args.files:
         sys.stderr.write("Couldn't open " + filename +
                 " for reading.\n")
         continue
-    output = insert_headers(filename, infile.read())
+    output = insert_headers(filename.split("/")[-1], infile.read())
     infile.close()
     try:
         outfile = open(filename, 'w') if args.in_place else sys.stdout
