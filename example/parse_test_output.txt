@@ -1,0 +1,220 @@
+list()
+()
+"
+Test constructors
+N/A
+
+list(3, 'X')
+(X, X, X)
+"
+Test constructors
+N/A
+
+list listA = {'A', 'B', 'C'}
+(A, B, C)
+"
+Test constructors
+N/A
+
+list listB(listA)
+(A, B, C)
+"
+Test constructors
+N/A
+
+list(listA.begin(), listA.end())
+(A, B, C)
+"
+Test constructors
+N/A
+
+listA.getSize()
+3
+"
+Test accessors
+N/A
+
+list().empty()
+true
+"
+Test accessors
+N/A
+
+listA.empty()
+false
+"
+Test accessors
+N/A
+
+listA.front()
+A
+"
+Test accessors
+N/A
+
+listA.back()
+C
+"
+Test accessors
+N/A
+
+*(listA.begin())
+A
+"
+Test accessors
+N/A
+
+*(listA.end())
+C
+"
+Test accessors
+N/A
+
+listA[-4]
+out_of_range: index out-of-range
+"
+Test operator[]
+N/A
+
+listA[-3]
+A
+"
+Test operator[]
+N/A
+
+listA[-2]
+B
+"
+Test operator[]
+N/A
+
+listA[-1]
+C
+"
+Test operator[]
+N/A
+
+listA[0]
+A
+"
+Test operator[]
+N/A
+
+listA[1]
+B
+"
+Test operator[]
+N/A
+
+listA[2]
+C
+"
+Test operator[]
+N/A
+
+listA[3]
+out_of_range: index out-of-range
+"
+Test operator[]
+N/A
+
+listB.release()
+()
+"
+Test mutators
+N/A
+
+listB.push_back('A')
+(A)
+"
+Test push methods
+N/A
+
+listB.push_front('B')
+(B, A)
+"
+Test push methods
+N/A
+
+listB.push_back('C')
+(B, A, C)
+"
+Test push methods
+N/A
+
+listB.push_front('D')
+(D, B, A, C)
+"
+Test push methods
+N/A
+
+listB.push_back('E')
+(D, B, A, C, E)
+"
+Test push methods
+N/A
+
+list tmp = listA;
+
+tmp.pop_front()
+A
+"
+Test pop methods
+N/A
+
+tmp.pop_front()
+B
+"
+Test pop methods
+N/A
+
+tmp.pop_front()
+C
+"
+Test pop methods
+N/A
+
+tmp.pop_front()
+runtime_error: Empty list
+"
+Test pop methods
+N/A
+
+list tmp = listA;
+
+tmp.pop_back()
+C
+"
+Test pop methods
+N/A
+
+tmp.pop_back()
+B
+"
+Test pop methods
+N/A
+
+tmp.pop_back()
+A
+"
+Test pop methods
+N/A
+
+tmp.pop_back()
+runtime_error: Empty list
+"
+Test pop methods
+N/A
+
+listB
+(D, B, A, C, E)
+"
+Test assignment operator
+N/A
+
+listB = listA
+(A, B, C)
+"
+Test assignment operator
+N/A
+

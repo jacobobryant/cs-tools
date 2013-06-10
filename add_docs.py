@@ -241,7 +241,7 @@ parser.add_argument("-w", "--width", type=int, default=74,
 parser.add_argument("-i", "--in-place", action="store_true",
         help="modify file in place")
 parser.add_argument("-e", "--environment", default="Intel Pentium PC,"
-        +" Arch Linux, gcc 4.7", help="The environment")
+        +" Arch Linux, gcc 4.8", help="The environment")
 parser.add_argument("-t", "--tab-width", type=int, default=4,
         help="The width of tabs")
 parser.add_argument("-v", "--version", default="1.0",

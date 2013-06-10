@@ -1,0 +1,47 @@
+// Test constructors
+list(): ()
+list(3, 'X'): (X, X, X)
+list listA = {'A', 'B', 'C'}: (A, B, C)
+list listB(listA): (A, B, C)
+list(listA.begin(), listA.end()): (A, B, C)
+
+// Test accessors
+listA.getSize(): 3
+list().empty(): true
+listA.empty(): false
+listA.front(): A
+listA.back(): C
+*(listA.begin()): A
+*(listA.end()): C
+// Test operator[]
+listA[-4]: out_of_range: index out-of-range
+listA[-3]: A
+listA[-2]: B
+listA[-1]: C
+listA[0]: A
+listA[1]: B
+listA[2]: C
+listA[3]: out_of_range: index out-of-range
+
+// Test mutators
+listB.release(): ()
+// Test push methods
+listB.push_back('A'): (A)
+listB.push_front('B'): (B, A)
+listB.push_back('C'): (B, A, C)
+listB.push_front('D'): (D, B, A, C)
+listB.push_back('E'): (D, B, A, C, E)
+// Test pop methods
+list tmp = listA;
+tmp.pop_front(): A
+tmp.pop_front(): B
+tmp.pop_front(): C
+tmp.pop_front(): runtime_error: Empty list
+list tmp = listA;
+tmp.pop_back(): C
+tmp.pop_back(): B
+tmp.pop_back(): A
+tmp.pop_back(): runtime_error: Empty list
+// Test assignment operator
+listB: (D, B, A, C, E)
+listB = listA: (A, B, C)

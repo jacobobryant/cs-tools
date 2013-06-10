@@ -1,0 +1,46 @@
+<html><head><style type="text/css">
+            table { border-collapse: collapse; }
+            th,td { padding: 3px; font-size: 9pt; }
+            .declaration { text-align: left; }
+            </style></head><body><table border="1">
+<tr><th>input</th><th>expected output</th><th>actual output</th><th>reason for test</th><th>reason for difference</th></tr>
+<tr><td>list()</td><td>()</td><td>"</td><td>Test constructors</td><td>N/A</td></tr>
+<tr><td>list(3, 'X')</td><td>(X, X, X)</td><td>"</td><td>Test constructors</td><td>N/A</td></tr>
+<tr><td>list listA = {'A', 'B', 'C'}</td><td>(A, B, C)</td><td>"</td><td>Test constructors</td><td>N/A</td></tr>
+<tr><td>list listB(listA)</td><td>(A, B, C)</td><td>"</td><td>Test constructors</td><td>N/A</td></tr>
+<tr><td>list(listA.begin(), listA.end())</td><td>(A, B, C)</td><td>"</td><td>Test constructors</td><td>N/A</td></tr>
+<tr><td>listA.getSize()</td><td>3</td><td>"</td><td>Test accessors</td><td>N/A</td></tr>
+<tr><td>list().empty()</td><td>true</td><td>"</td><td>Test accessors</td><td>N/A</td></tr>
+<tr><td>listA.empty()</td><td>false</td><td>"</td><td>Test accessors</td><td>N/A</td></tr>
+<tr><td>listA.front()</td><td>A</td><td>"</td><td>Test accessors</td><td>N/A</td></tr>
+<tr><td>listA.back()</td><td>C</td><td>"</td><td>Test accessors</td><td>N/A</td></tr>
+<tr><td>*(listA.begin())</td><td>A</td><td>"</td><td>Test accessors</td><td>N/A</td></tr>
+<tr><td>*(listA.end())</td><td>C</td><td>"</td><td>Test accessors</td><td>N/A</td></tr>
+<tr><td>listA[-4]</td><td>out_of_range: index out-of-range</td><td>"</td><td>Test operator[]</td><td>N/A</td></tr>
+<tr><td>listA[-3]</td><td>A</td><td>"</td><td>Test operator[]</td><td>N/A</td></tr>
+<tr><td>listA[-2]</td><td>B</td><td>"</td><td>Test operator[]</td><td>N/A</td></tr>
+<tr><td>listA[-1]</td><td>C</td><td>"</td><td>Test operator[]</td><td>N/A</td></tr>
+<tr><td>listA[0]</td><td>A</td><td>"</td><td>Test operator[]</td><td>N/A</td></tr>
+<tr><td>listA[1]</td><td>B</td><td>"</td><td>Test operator[]</td><td>N/A</td></tr>
+<tr><td>listA[2]</td><td>C</td><td>"</td><td>Test operator[]</td><td>N/A</td></tr>
+<tr><td>listA[3]</td><td>out_of_range: index out-of-range</td><td>"</td><td>Test operator[]</td><td>N/A</td></tr>
+<tr><td>listB.release()</td><td>()</td><td>"</td><td>Test mutators</td><td>N/A</td></tr>
+<tr><td>listB.push_back('A')</td><td>(A)</td><td>"</td><td>Test push methods</td><td>N/A</td></tr>
+<tr><td>listB.push_front('B')</td><td>(B, A)</td><td>"</td><td>Test push methods</td><td>N/A</td></tr>
+<tr><td>listB.push_back('C')</td><td>(B, A, C)</td><td>"</td><td>Test push methods</td><td>N/A</td></tr>
+<tr><td>listB.push_front('D')</td><td>(D, B, A, C)</td><td>"</td><td>Test push methods</td><td>N/A</td></tr>
+<tr><td>listB.push_back('E')</td><td>(D, B, A, C, E)</td><td>"</td><td>Test push methods</td><td>N/A</td></tr>
+<tr><th class="declaration" colspan=5>list tmp = listA;</th></tr>
+<tr><td>tmp.pop_front()</td><td>A</td><td>"</td><td>Test pop methods</td><td>N/A</td></tr>
+<tr><td>tmp.pop_front()</td><td>B</td><td>"</td><td>Test pop methods</td><td>N/A</td></tr>
+<tr><td>tmp.pop_front()</td><td>C</td><td>"</td><td>Test pop methods</td><td>N/A</td></tr>
+<tr><td>tmp.pop_front()</td><td>runtime_error: Empty list</td><td>"</td><td>Test pop methods</td><td>N/A</td></tr>
+<tr><th class="declaration" colspan=5>list tmp = listA;</th></tr>
+<tr><td>tmp.pop_back()</td><td>C</td><td>"</td><td>Test pop methods</td><td>N/A</td></tr>
+<tr><td>tmp.pop_back()</td><td>B</td><td>"</td><td>Test pop methods</td><td>N/A</td></tr>
+<tr><td>tmp.pop_back()</td><td>A</td><td>"</td><td>Test pop methods</td><td>N/A</td></tr>
+<tr><td>tmp.pop_back()</td><td>runtime_error: Empty list</td><td>"</td><td>Test pop methods</td><td>N/A</td></tr>
+<tr><td>listB</td><td>(D, B, A, C, E)</td><td>"</td><td>Test assignment operator</td><td>N/A</td></tr>
+<tr><td>listB = listA</td><td>(A, B, C)</td><td>"</td><td>Test assignment operator</td><td>N/A</td></tr>
+<tr><th class="declaration" colspan=5></th></tr>
+</table></body></html>
