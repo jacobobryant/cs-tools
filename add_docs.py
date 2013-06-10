@@ -71,17 +71,18 @@ class FunctionHeader(BaseHeader):
         self.definition += self.signature
 
     @classmethod
-    def parse(cls, text):
+    def parse(cls, text, pattern=None):
         headers = []
-        pattern = re.compile(r"""
-                ^(?P<indent>\s*)
-                ((?P<type>(const\ )?[\w&*]+)\ )?
-                ((?P<class>\w+)::)?
-                (?P<name>(\w+|operator\S\S?))
-                \(
-                (?P<args>[^)]*)
-                \)(?!;)
-                """, re.VERBOSE|re.MULTILINE)
+        if pattern is None:
+            pattern = re.compile(r"""
+                    ^(?P<indent>\s*)
+                    ((?P<type>(const\ )?[\w&*]+)\ )?
+                    ((?P<class>\w+)::)?
+                    (?P<name>(\w+|operator\S\S?))
+                    \(
+                    (?P<args>[^)]*)
+                    \)(?!;)
+                    """, re.VERBOSE|re.MULTILINE)
         for match in pattern.finditer(text):
             func = match.groupdict()
             # Type can only be ommited for constructors/destructors
@@ -119,6 +120,7 @@ class FunctionHeader(BaseHeader):
             self.contents.append(["Parameters", self.params()])
         if self.type != 'void':
             self.contents.append(["Returns", ""])
+        self.contents.append(["Throws", ""])
         self.contents.append(["History", ""])
         return super().__str__()
 
@@ -132,6 +134,21 @@ class FunctionHeader(BaseHeader):
                     ["Method", self.signature]]
         else:
             return [["Function", self.signature]]
+
+class TemplateFunctionHeader(FunctionHeader):
+    @classmethod
+    def parse(cls, text):
+        pattern = re.compile(r"""
+                ^(?P<indent>[\ \t]*)
+                template\s*<.+>\s*\n?
+                \s*((?P<type>(const\ )?\w+(<.+>)?[\ \t]*[&*]?)\ )?
+                ((?P<class>\w+)(<.+>)?::)?
+                (?P<name>(\w+|operator\S\S?))
+                \(
+                (?P<args>[^)]*)
+                \)(?!;)
+                """, re.VERBOSE|re.MULTILINE)
+        return FunctionHeader.parse(text, pattern)
 
 class CPPFileHeader(BaseHeader):
     def __init__(self, filename, headers):
@@ -158,8 +175,11 @@ class ClassHeader(BaseHeader):
     @classmethod
     def parse(cls, text):
         headers = []
-        pattern = re.compile(r'^(?P<indent>\s*)class\s+(?P<name>\w+)',
-                re.MULTILINE)
+        pattern = re.compile(r'''
+                ^(?P<indent>[\ \t]*)
+                (template\s*<.+>\s*)?
+                class\s+(?P<name>\w+)
+                ''', re.MULTILINE|re.VERBOSE)
         for match in pattern.finditer(text):
             class_ = match.groupdict()
             headers.append(cls(class_, text, match.start()))
@@ -196,8 +216,11 @@ def insert_headers(filename, text):
     if ext == "h":
         headers.append(HFileHeader(filename, text))
         headers += ClassHeader.parse(text)
+        headers += TemplateFunctionHeader.parse(text)
     else:
-        fheaders = FunctionHeader.parse(text)
+        fheaders = TemplateFunctionHeader.parse(text)
+        if len(fheaders) == 0:
+            fheaders = FunctionHeader.parse(text)
         names = set([h.name for h in fheaders])
         for h in fheaders:
             h.set_calls(text, names)
@@ -206,16 +229,23 @@ def insert_headers(filename, text):
         headers += fheaders
     return BaseHeader.merge(text, headers)
 
-parser = argparse.ArgumentParser(description="Add function headers to " \
+parser = argparse.ArgumentParser(description="Adds in-code headers to " \
         + "c++ source files. Writes to stdout unless the -i option is " \
-        + "included.")
+        + "included.", formatter_class=argparse
+        .ArgumentDefaultsHelpFormatter)
 parser.add_argument("files", nargs="+", help="the input files")
-parser.add_argument("-n", "--name", default='Jacob O\'Bryant', help="Your name")
-parser.add_argument("-w", "--width", type=int, default=74, help="The maximum line width")
-parser.add_argument("-i", "--in-place", action="store_true", help="modify file in place")
-parser.add_argument("-e", "--environment", default="Intel Pentium PC, Arch Linux, gcc 4.7", help="The maximum line width")
-parser.add_argument("-t", "--tab-width", type=int, default=4, help="The width of tabs")
-parser.add_argument("-v", "--version", default="1.0", help="The starting version")
+parser.add_argument("-n", "--name", default='Jacob O\'Bryant',
+        help="Your name")
+parser.add_argument("-w", "--width", type=int, default=74,
+        help="The maximum line width")
+parser.add_argument("-i", "--in-place", action="store_true",
+        help="modify file in place")
+parser.add_argument("-e", "--environment", default="Intel Pentium PC,"
+        +" Arch Linux, gcc 4.7", help="The environment")
+parser.add_argument("-t", "--tab-width", type=int, default=4,
+        help="The width of tabs")
+parser.add_argument("-v", "--version", default="1.0",
+        help="The starting version")
 args = parser.parse_args()
 
 for filename in args.files:

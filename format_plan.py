@@ -20,12 +20,13 @@ def print_row(outfile, row, isHeader=False):
 def print_declaration(outfile, declaration):
     outfile.write("<tr><th class=\"declaration\" colspan=5>" +
             declaration[0] + "</th></tr>\n")
-    
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description="format test plan as html")
-    parser.add_argument('infile', nargs='?')
-    parser.add_argument('outfile', nargs='?')
+    parser = ArgumentParser(description="Formats a test plan as html.")
+    parser.add_argument('infile', nargs='?', help="The output from"
+            + " parse_test.py. Reads from stdin if not supplied.")
+    parser.add_argument('outfile', nargs='?', help="The output file."
+            + " Writes to stdout if not supplied.")
     args = parser.parse_args()
     infile = open(args.infile, "r") if args.infile != None else stdin
     outfile = open(args.outfile, "w") if args.outfile != None else stdout
@@ -37,7 +38,8 @@ if __name__ == "__main__":
             </style></head><body><table border="1">\n""")
     rows = [block.strip().split("\n")
                 for block in infile.read().split("\n\n")]
-    infile.close()
+    if infile is not stdin:
+        infile.close()
     print_row(outfile, headers, True)
     for row in rows:
         if len(row) == 1:
@@ -45,4 +47,5 @@ if __name__ == "__main__":
         else:
             print_row(outfile, row)
     outfile.write("</table></body></html>\n")
-    outfile.close()
+    if outfile is not stdout:
+        outfile.close()
