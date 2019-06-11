@@ -1,4 +1,4 @@
-Jacob O'Bryant <obryant666@gmail.com>
+Jacob O'Bryant
 
 `add_docs.py` usage:
 
